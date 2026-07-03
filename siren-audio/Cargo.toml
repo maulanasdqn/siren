@@ -1,0 +1,9 @@
+[package]
+name = "siren-audio"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+siren-domain.workspace = true
+symphonia.workspace = true
+anyhow.workspace = true

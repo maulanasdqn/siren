@@ -1,0 +1,9 @@
+[package]
+name = "siren-mic"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+siren-domain.workspace = true
+cpal.workspace = true
+anyhow.workspace = true

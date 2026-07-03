@@ -1,0 +1,7 @@
+[package]
+name = "siren-vad"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+siren-domain.workspace = true

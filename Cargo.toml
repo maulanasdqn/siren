@@ -1,0 +1,44 @@
+[workspace]
+resolver = "2"
+members = [
+    "siren-domain",
+    "siren-application",
+    "siren-asr",
+    "siren-audio",
+    "siren-vad",
+    "siren-mic",
+    "siren-speaker",
+    "siren-tts",
+    "siren-cli",
+]
+default-members = ["siren-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+siren-domain = { path = "siren-domain" }
+siren-application = { path = "siren-application" }
+siren-asr = { path = "siren-asr", default-features = false }
+siren-audio = { path = "siren-audio" }
+siren-vad = { path = "siren-vad" }
+siren-mic = { path = "siren-mic" }
+siren-speaker = { path = "siren-speaker" }
+siren-tts = { path = "siren-tts" }
+
+candle-core = "0.11"
+candle-nn = "0.11"
+candle-transformers = "0.11"
+hf-hub = "0.5"
+tokenizers = "0.23"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+symphonia = { version = "0.6", features = ["all"] }
+cpal = "0.18"
+clap = { version = "4", features = ["derive"] }
+thiserror = "2"
+anyhow = "1"
+
+[profile.release]
+opt-level = 3
