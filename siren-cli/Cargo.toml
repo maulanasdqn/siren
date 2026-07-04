@@ -16,6 +16,7 @@ siren-vad.workspace = true
 siren-mic.workspace = true
 siren-speaker.workspace = true
 siren-tts.workspace = true
+siren-tts-gemini.workspace = true
 clap.workspace = true
 anyhow.workspace = true
 

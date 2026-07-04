@@ -1,12 +1,13 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use siren_application::{SynthesizeText, TranscribeFile, TranscribeStream};
+use siren_application::{StreamSpeech, SynthesizeText, TranscribeFile, TranscribeStream};
 use siren_asr::WhisperRecognizer;
 use siren_audio::{SymphoniaDecoder, WavWriter};
 use siren_domain::{Language, ModelId, SpeakerSink, WaveformWriter};
 use siren_mic::CpalMicrophone;
-use siren_speaker::CpalSpeaker;
+use siren_speaker::{CpalSpeaker, CpalStreamingSpeaker};
 use siren_tts::{PiperSynthesizer, Prosody};
+use siren_tts_gemini::GeminiSynthesizer;
 use siren_vad::EnergyVad;
 use std::path::PathBuf;
 
@@ -43,6 +44,13 @@ enum Command {
         #[arg(long, default_value_t = 1.0)]
         noise_w: f32,
     },
+    Say {
+        text: String,
+        #[arg(long, default_value = siren_tts_gemini::DEFAULT_VOICE)]
+        voice: String,
+        #[arg(long, default_value = siren_tts_gemini::DEFAULT_MODEL)]
+        model: String,
+    },
 }
 
 fn main() -> Result<()> {
@@ -54,7 +62,15 @@ fn main() -> Result<()> {
             let prosody = Prosody { length_scale, noise_scale, noise_w };
             speak(&text, output, play, prosody)
         }
+        Command::Say { text, voice, model } => say(&text, voice, model),
     }
+}
+
+fn say(text: &str, voice: String, model: String) -> Result<()> {
+    let mut synthesizer = GeminiSynthesizer::load(model, voice.clone())?;
+    eprintln!("voice: Gemini {voice} (live streaming)");
+    StreamSpeech::new(&mut synthesizer).execute(text, &CpalStreamingSpeaker)?;
+    Ok(())
 }
 
 fn transcribe(model: &str, language: &str, file: &PathBuf) -> Result<()> {

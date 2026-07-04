@@ -1,0 +1,13 @@
+[package]
+name = "siren-tts-gemini"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+siren-domain.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+base64 = "0.22"
+futures-util = "0.3"
+tokio = { version = "1", features = ["rt", "macros"] }
+reqwest = { version = "0.13", features = ["json", "stream"] }

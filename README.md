@@ -41,7 +41,18 @@ cargo run --release -- listen
 # Text-to-speech (Indonesian, female voice): write speech.wav, optionally play it live
 cargo run --release -- speak "selamat pagi apa kabar" -o out.wav
 cargo run --release -- speak "halo dunia" --play
+
+# Live streaming English male voice via Google Gemini (needs GEMINI_API_KEY)
+export GEMINI_API_KEY=...
+cargo run --release -- say "Hey, this is a real-time streaming natural male voice."
+cargo run --release -- say "Different narrator." --voice Orus
 ```
+
+`say` streams audio from Gemini's TTS model (`gemini-3.1-flash-tts-preview`, which returns many
+small PCM chunks) and plays them through the speaker **as they arrive** — a distinct
+`StreamingSynthesizer`/`StreamingSpeaker` port pair from the one-shot local `speak` path. Default
+voice `Charon` (natural male); other male voices: `Orus`, `Fenrir`, `Iapetus`, `Enceladus`. Requires
+a network connection and a `GEMINI_API_KEY`.
 
 NVIDIA instead of Apple Silicon:
 
@@ -69,10 +80,11 @@ pointing inward toward the domain. Each source file is comment-free and under 20
 
 | Crate | Layer | Role |
 |-------|-------|------|
-| `siren-domain` | Domain | `AudioSamples`, `Waveform`, `Transcript`, `Language`, `ModelId`, `Utterance`; DSP services; **ports** (`SpeechRecognizer`, `SpeechSynthesizer`, `AudioDecoder`, `VoiceActivityDetector`, `MicrophoneSource`, `WaveformWriter`, `SpeakerSink`); `DomainError`. No infra deps. |
-| `siren-application` | Application | Use cases `TranscribeFile`, `TranscribeStream`, `SynthesizeText` orchestrating ports. |
+| `siren-domain` | Domain | `AudioSamples`, `Waveform`, `Transcript`, `Language`, `ModelId`, `Utterance`; DSP services; **ports** (`SpeechRecognizer`, `SpeechSynthesizer`, `StreamingSynthesizer`, `AudioDecoder`, `VoiceActivityDetector`, `MicrophoneSource`, `WaveformWriter`, `SpeakerSink`, `StreamingSpeaker`); `DomainError`. No infra deps. |
+| `siren-application` | Application | Use cases `TranscribeFile`, `TranscribeStream`, `SynthesizeText`, `StreamSpeech` orchestrating ports. |
 | `siren-asr` | Adapter | `WhisperRecognizer` — Candle Whisper (safetensors *or* `.bin`), greedy decode. |
-| `siren-tts` | Adapter | `PiperSynthesizer` — Piper female `id_ID` voice via `piper-rs` (onnxruntime + espeak-ng, C/C++). |
+| `siren-tts` | Adapter | `PiperSynthesizer` — local Piper female `id_ID` voice via `piper-rs` (onnxruntime + espeak-ng, C/C++). |
+| `siren-tts-gemini` | Adapter | `GeminiSynthesizer` — cloud live streaming English male voice via Gemini TTS (SSE over reqwest; async bridged to a sync chunk iterator). |
 | `siren-audio` | Adapter | `SymphoniaDecoder` (decode→16 kHz) + `WavWriter` (pure-Rust RIFF). |
 | `siren-vad` | Adapter | `EnergyVad` — pure-Rust utterance segmentation. |
 | `siren-mic` | Adapter | `CpalMicrophone` — mic capture yielding 16 kHz mono blocks. |
@@ -88,6 +100,7 @@ mic  ──► CpalMicrophone ──► EnergyVad (segment) ──► Utterance 
                                       WhisperRecognizer (Candle, GPU) ──► Transcript
 
 text ──► PiperSynthesizer (Piper, female) ──► Waveform ──► WavWriter / CpalSpeaker
+text ──► GeminiSynthesizer (cloud, male) ──► Waveform chunks ──► CpalStreamingSpeaker (live)
 ```
 
 ## Known limitations / next steps

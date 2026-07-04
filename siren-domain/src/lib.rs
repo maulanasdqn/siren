@@ -12,7 +12,7 @@ pub use error::DomainError;
 pub use language::{Language, ModelId};
 pub use ports::{
     AudioDecoder, MicrophoneSource, SpeakerSink, SpeechRecognizer, SpeechSynthesizer,
-    VoiceActivityDetector, WaveformWriter,
+    StreamingSpeaker, StreamingSynthesizer, VoiceActivityDetector, WaveformWriter,
 };
 pub use transcript::Transcript;
 pub use waveform::Waveform;

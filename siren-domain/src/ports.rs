@@ -12,6 +12,14 @@ pub trait SpeechSynthesizer {
     fn synthesize(&mut self, text: &str) -> Result<Waveform, DomainError>;
 }
 
+pub trait StreamingSynthesizer {
+    fn stream(&mut self, text: &str) -> Result<Box<dyn Iterator<Item = Waveform>>, DomainError>;
+}
+
+pub trait StreamingSpeaker {
+    fn play_stream(&self, chunks: Box<dyn Iterator<Item = Waveform>>) -> Result<(), DomainError>;
+}
+
 pub trait WaveformWriter {
     fn write(&self, waveform: &Waveform, path: &Path) -> Result<(), DomainError>;
 }
