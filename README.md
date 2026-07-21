@@ -75,6 +75,49 @@ NVIDIA instead of Apple Silicon (local Whisper):
 cargo run --release -p siren-cli --no-default-features --features cuda -- --local listen
 ```
 
+## Use with Claude Code & other AI agents (MCP)
+
+siren ships an **[MCP](https://modelcontextprotocol.io) server** (`siren-mcp`) so any
+MCP-capable agent — Claude Code, Cursor, Windsurf, Zed, … — can give itself a voice and
+transcribe audio. It speaks JSON-RPC 2.0 over stdio and exposes three tools:
+
+| Tool | What it does |
+|------|--------------|
+| `siren_speak` | Speak text aloud (Gemini voice), or save a WAV with `output`. `local: true` uses the offline Piper voice. |
+| `siren_transcribe` | Transcribe an audio file to text (Gemini; `local: true` uses offline Whisper). |
+| `siren_list_voices` | List the available Gemini voice names. |
+
+Build the server binary once:
+
+```bash
+cargo build --release -p siren-mcp   # → target/release/siren-mcp
+```
+
+**Claude Code** — one command (use an absolute path to the binary):
+
+```bash
+claude mcp add siren --env GEMINI_API_KEY=your_key -- /abs/path/to/siren/target/release/siren-mcp
+```
+
+**Any MCP client** — add this to the client's server config (e.g. Claude Code's
+`.mcp.json`, Cursor's `mcp.json`); a copy lives at [`examples/mcp.json`](examples/mcp.json):
+
+```json
+{
+  "mcpServers": {
+    "siren": {
+      "command": "/abs/path/to/siren/target/release/siren-mcp",
+      "env": { "GEMINI_API_KEY": "your_key" }
+    }
+  }
+}
+```
+
+Then just ask the agent to *"say hello out loud"* or *"transcribe recording.wav"*.
+`GEMINI_API_KEY` is only needed for the Gemini path — pass `local: true` and it runs fully
+offline. The server writes **only** JSON-RPC to stdout (all logs go to stderr), so it drops
+into any client cleanly.
+
 ## Architecture
 
 Hexagonal / Clean Architecture — a Cargo workspace of small crates, dependencies
@@ -110,6 +153,7 @@ them by injecting a different adapter.
 | `siren-mic` | Adapter | `CpalMicrophone` — mic capture yielding `Send` 16 kHz mono blocks. |
 | `siren-speaker` | Adapter | `CpalSpeaker` (one-shot) + `CpalStreamingSpeaker` (plays chunks as they arrive). |
 | `siren-cli` | Driver | clap CLI; composition root injecting Gemini or local adapters. |
+| `siren-mcp` | Driver | MCP stdio server (JSON-RPC 2.0) exposing `speak`/`transcribe`/`list_voices` to AI agents. |
 
 Data flow:
 

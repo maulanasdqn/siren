@@ -3595,6 +3595,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "siren-mcp"
+version = "0.2.0"
+dependencies = [
+ "anyhow",
+ "serde_json",
+ "siren-application",
+ "siren-asr",
+ "siren-asr-gemini",
+ "siren-audio",
+ "siren-domain",
+ "siren-gemini",
+ "siren-speaker",
+ "siren-tts",
+ "siren-tts-gemini",
+]
+
+[[package]]
 name = "siren-mic"
 version = "0.2.0"
 dependencies = [

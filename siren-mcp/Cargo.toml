@@ -1,0 +1,27 @@
+[package]
+name = "siren-mcp"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "siren-mcp"
+path = "src/main.rs"
+
+[dependencies]
+siren-domain.workspace = true
+siren-application.workspace = true
+siren-asr = { workspace = true, default-features = false }
+siren-asr-gemini.workspace = true
+siren-audio.workspace = true
+siren-speaker.workspace = true
+siren-tts.workspace = true
+siren-tts-gemini.workspace = true
+siren-gemini.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+
+[features]
+default = ["metal"]
+metal = ["siren-asr/metal"]
+cuda = ["siren-asr/cuda"]
+accelerate = ["siren-asr/accelerate"]

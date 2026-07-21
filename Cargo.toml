@@ -14,6 +14,7 @@ members = [
     "siren-asr-gemini",
     "siren-live-gemini",
     "siren-cli",
+    "siren-mcp",
 ]
 default-members = ["siren-cli"]
 

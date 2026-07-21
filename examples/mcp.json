@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "siren": {
+      "command": "/abs/path/to/siren/target/release/siren-mcp",
+      "env": {
+        "GEMINI_API_KEY": "your_key"
+      }
+    }
+  }
+}
