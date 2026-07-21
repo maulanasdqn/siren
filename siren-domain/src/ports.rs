@@ -23,6 +23,10 @@ pub trait LiveVoiceAgent {
     ) -> Result<Box<dyn Iterator<Item = Waveform>>, DomainError>;
 }
 
+pub trait CodingAgent {
+    fn send(&mut self, prompt: &str) -> Result<String, DomainError>;
+}
+
 pub trait StreamingSpeaker {
     fn play_stream(&self, chunks: Box<dyn Iterator<Item = Waveform>>) -> Result<(), DomainError>;
 }

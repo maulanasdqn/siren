@@ -1,0 +1,28 @@
+[package]
+name = "siren-voice"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "siren-voice"
+path = "src/main.rs"
+
+[dependencies]
+siren-domain.workspace = true
+siren-application.workspace = true
+siren-asr = { workspace = true, default-features = false }
+siren-asr-gemini.workspace = true
+siren-agent-claude.workspace = true
+siren-mic.workspace = true
+siren-vad.workspace = true
+siren-speaker.workspace = true
+siren-tts-gemini.workspace = true
+siren-gemini.workspace = true
+clap.workspace = true
+anyhow.workspace = true
+
+[features]
+default = ["metal"]
+metal = ["siren-asr/metal"]
+cuda = ["siren-asr/cuda"]
+accelerate = ["siren-asr/accelerate"]

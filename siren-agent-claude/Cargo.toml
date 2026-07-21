@@ -1,0 +1,9 @@
+[package]
+name = "siren-agent-claude"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+siren-domain.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true

@@ -3504,15 +3504,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
+name = "siren-agent-claude"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "serde_json",
+ "siren-domain",
+]
+
+[[package]]
 name = "siren-application"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "siren-domain",
 ]
 
 [[package]]
 name = "siren-asr"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "candle-core",
@@ -3526,7 +3535,7 @@ dependencies = [
 
 [[package]]
 name = "siren-asr-gemini"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3539,7 +3548,7 @@ dependencies = [
 
 [[package]]
 name = "siren-audio"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "siren-domain",
@@ -3548,7 +3557,7 @@ dependencies = [
 
 [[package]]
 name = "siren-cli"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -3568,21 +3577,21 @@ dependencies = [
 
 [[package]]
 name = "siren-domain"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "thiserror 2.0.18",
 ]
 
 [[package]]
 name = "siren-gemini"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "siren-domain",
 ]
 
 [[package]]
 name = "siren-live-gemini"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3596,7 +3605,7 @@ dependencies = [
 
 [[package]]
 name = "siren-mcp"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "serde_json",
@@ -3613,7 +3622,7 @@ dependencies = [
 
 [[package]]
 name = "siren-mic"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "cpal",
@@ -3622,7 +3631,7 @@ dependencies = [
 
 [[package]]
 name = "siren-speaker"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "cpal",
@@ -3631,7 +3640,7 @@ dependencies = [
 
 [[package]]
 name = "siren-tts"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "hf-hub",
@@ -3642,7 +3651,7 @@ dependencies = [
 
 [[package]]
 name = "siren-tts-gemini"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3656,9 +3665,27 @@ dependencies = [
 
 [[package]]
 name = "siren-vad"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "siren-domain",
+]
+
+[[package]]
+name = "siren-voice"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "siren-agent-claude",
+ "siren-application",
+ "siren-asr",
+ "siren-asr-gemini",
+ "siren-domain",
+ "siren-gemini",
+ "siren-mic",
+ "siren-speaker",
+ "siren-tts-gemini",
+ "siren-vad",
 ]
 
 [[package]]

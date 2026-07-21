@@ -118,6 +118,47 @@ Then just ask the agent to *"say hello out loud"* or *"transcribe recording.wav"
 offline. The server writes **only** JSON-RPC to stdout (all logs go to stderr), so it drops
 into any client cleanly.
 
+## Voice-driven coding (talk to Claude Code)
+
+Two ways to add voice to your Claude Code sessions, both built on siren:
+
+### 1. Hear Claude's replies — Stop hook
+
+[`hooks/speak_response.py`](hooks/speak_response.py) is a Claude Code **Stop hook**: after
+each turn it reads the last assistant message aloud with `siren speak`. It's wired for this
+repo in [`.claude/settings.json`](.claude/settings.json) — copy both into another project (or
+your `~/.claude/settings.json`) to use it everywhere. Restart the session after adding it;
+hooks load at startup.
+
+- Needs `GEMINI_API_KEY` for the Gemini voice; set `SIREN_SPEAK_ARGS=--local` for offline Piper.
+- Env tunables: `SIREN_SPEAK_ARGS` (e.g. `--voice Orus`), `SIREN_MAX_CHARS`, `SIREN_BIN`.
+
+### 2. Full hands-free loop — `siren-voice`
+
+`siren-voice` closes the loop — **you speak → siren transcribes → Claude Code acts → siren
+speaks the reply** — over one continuous Claude Code session:
+
+```
+mic → VAD → STT (Gemini/Whisper) → `claude --print` → reply → Gemini TTS → speaker → repeat
+```
+
+```bash
+cargo build --release -p siren-voice
+export GEMINI_API_KEY=...
+./target/release/siren-voice                        # speak; Ctrl-C to stop
+./target/release/siren-voice --voice Orus --system "Keep answers short."
+./target/release/siren-voice --local                # offline Whisper for STT
+./target/release/siren-voice --permission-mode bypassPermissions   # let Claude run tools unattended
+```
+
+Each turn runs `claude --print --output-format json --resume <session>`, so Claude keeps
+context and edits your repo across turns. `--permission-mode` (default `acceptEdits`) sets how
+much Claude may do unattended: `acceptEdits` auto-approves file edits only; `bypassPermissions`
+also lets it run commands (powerful — use with care).
+
+> **Use headphones.** The loop is always listening, so on open speakers siren will hear
+> Claude's spoken reply and transcribe it back into the conversation.
+
 ## Architecture
 
 Hexagonal / Clean Architecture — a Cargo workspace of small crates, dependencies
@@ -140,7 +181,7 @@ them by injecting a different adapter.
 
 | Crate | Layer | Role |
 |-------|-------|------|
-| `siren-domain` | Domain | `AudioSamples`, `Waveform`, `Transcript`, `Language`, `ModelId`, `Utterance`; DSP services; **ports** (`SpeechRecognizer`, `SpeechSynthesizer`, `StreamingSynthesizer`, `LiveVoiceAgent`, `AudioDecoder`, `VoiceActivityDetector`, `MicrophoneSource`, `WaveformWriter`, `SpeakerSink`, `StreamingSpeaker`); `DomainError`. No infra deps. |
+| `siren-domain` | Domain | `AudioSamples`, `Waveform`, `Transcript`, `Language`, `ModelId`, `Utterance`; DSP services; **ports** (`SpeechRecognizer`, `SpeechSynthesizer`, `StreamingSynthesizer`, `LiveVoiceAgent`, `CodingAgent`, `AudioDecoder`, `VoiceActivityDetector`, `MicrophoneSource`, `WaveformWriter`, `SpeakerSink`, `StreamingSpeaker`); `DomainError`. No infra deps. |
 | `siren-application` | Application | Use cases `TranscribeFile`, `TranscribeStream`, `SynthesizeText`, `StreamSpeech`, `Converse` orchestrating ports. |
 | `siren-gemini` | Adapter (shared) | Gemini credentials (`GEMINI_API_KEY`), REST/WS endpoints, default model & voice constants. |
 | `siren-tts-gemini` | Adapter | `GeminiSynthesizer` — Gemini TTS; streaming (`StreamingSynthesizer`) **and** one-shot (`SpeechSynthesizer`, for file output). |
@@ -152,8 +193,10 @@ them by injecting a different adapter.
 | `siren-vad` | Adapter | `EnergyVad` — pure-Rust utterance segmentation. |
 | `siren-mic` | Adapter | `CpalMicrophone` — mic capture yielding `Send` 16 kHz mono blocks. |
 | `siren-speaker` | Adapter | `CpalSpeaker` (one-shot) + `CpalStreamingSpeaker` (plays chunks as they arrive). |
+| `siren-agent-claude` | Adapter | `ClaudeCodeAgent` — drives Claude Code headless (`claude --print`) with session continuity; implements the `CodingAgent` port. |
 | `siren-cli` | Driver | clap CLI; composition root injecting Gemini or local adapters. |
 | `siren-mcp` | Driver | MCP stdio server (JSON-RPC 2.0) exposing `speak`/`transcribe`/`list_voices` to AI agents. |
+| `siren-voice` | Driver | Hands-free voice loop: mic → STT → Claude Code → Gemini TTS → speaker. |
 
 Data flow:
 

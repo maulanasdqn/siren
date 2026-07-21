@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/ms/Development/siren/hooks/speak_response.py"
+          }
+        ]
+      }
+    ]
+  }
+}
