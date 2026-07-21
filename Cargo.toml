@@ -9,13 +9,16 @@ members = [
     "siren-mic",
     "siren-speaker",
     "siren-tts",
+    "siren-gemini",
     "siren-tts-gemini",
+    "siren-asr-gemini",
+    "siren-live-gemini",
     "siren-cli",
 ]
 default-members = ["siren-cli"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [workspace.dependencies]
@@ -27,7 +30,10 @@ siren-vad = { path = "siren-vad" }
 siren-mic = { path = "siren-mic" }
 siren-speaker = { path = "siren-speaker" }
 siren-tts = { path = "siren-tts" }
+siren-gemini = { path = "siren-gemini" }
 siren-tts-gemini = { path = "siren-tts-gemini" }
+siren-asr-gemini = { path = "siren-asr-gemini" }
+siren-live-gemini = { path = "siren-live-gemini" }
 
 candle-core = "0.11"
 candle-nn = "0.11"

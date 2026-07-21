@@ -16,6 +16,13 @@ pub trait StreamingSynthesizer {
     fn stream(&mut self, text: &str) -> Result<Box<dyn Iterator<Item = Waveform>>, DomainError>;
 }
 
+pub trait LiveVoiceAgent {
+    fn converse(
+        &mut self,
+        mic: Box<dyn Iterator<Item = AudioSamples> + Send>,
+    ) -> Result<Box<dyn Iterator<Item = Waveform>>, DomainError>;
+}
+
 pub trait StreamingSpeaker {
     fn play_stream(&self, chunks: Box<dyn Iterator<Item = Waveform>>) -> Result<(), DomainError>;
 }
@@ -38,5 +45,5 @@ pub trait VoiceActivityDetector {
 }
 
 pub trait MicrophoneSource {
-    fn open(&self) -> Result<Box<dyn Iterator<Item = AudioSamples>>, DomainError>;
+    fn open(&self) -> Result<Box<dyn Iterator<Item = AudioSamples> + Send>, DomainError>;
 }

@@ -11,8 +11,9 @@ pub use dsp::{downmix_to_mono, resample_linear};
 pub use error::DomainError;
 pub use language::{Language, ModelId};
 pub use ports::{
-    AudioDecoder, MicrophoneSource, SpeakerSink, SpeechRecognizer, SpeechSynthesizer,
-    StreamingSpeaker, StreamingSynthesizer, VoiceActivityDetector, WaveformWriter,
+    AudioDecoder, LiveVoiceAgent, MicrophoneSource, SpeakerSink, SpeechRecognizer,
+    SpeechSynthesizer, StreamingSpeaker, StreamingSynthesizer, VoiceActivityDetector,
+    WaveformWriter,
 };
 pub use transcript::Transcript;
 pub use waveform::Waveform;

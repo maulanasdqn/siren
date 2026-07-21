@@ -2,17 +2,38 @@ use anyhow::{anyhow, Context, Result};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::Stream;
 use siren_domain::{downmix_to_mono, resample_linear, AudioSamples, DomainError, MicrophoneSource};
-use std::sync::mpsc::{self, Receiver};
+use std::sync::mpsc::{self, Sender};
 
 pub struct CpalMicrophone;
 
 impl MicrophoneSource for CpalMicrophone {
-    fn open(&self) -> Result<Box<dyn Iterator<Item = AudioSamples>>, DomainError> {
+    fn open(&self) -> Result<Box<dyn Iterator<Item = AudioSamples> + Send>, DomainError> {
         open_inner().map_err(DomainError::audio)
     }
 }
 
-fn open_inner() -> Result<Box<dyn Iterator<Item = AudioSamples>>> {
+fn open_inner() -> Result<Box<dyn Iterator<Item = AudioSamples> + Send>> {
+    let (audio_tx, audio_rx) = mpsc::channel::<AudioSamples>();
+    let (ready_tx, ready_rx) = mpsc::channel::<Result<()>>();
+
+    std::thread::spawn(move || match run(audio_tx) {
+        Ok(stream) => {
+            let _ = ready_tx.send(Ok(()));
+            let _keep = stream;
+            loop {
+                std::thread::park();
+            }
+        }
+        Err(e) => {
+            let _ = ready_tx.send(Err(anyhow!("{e}")));
+        }
+    });
+
+    ready_rx.recv().context("microphone thread exited")??;
+    Ok(Box::new(audio_rx.into_iter()))
+}
+
+fn run(audio_tx: Sender<AudioSamples>) -> Result<Stream> {
     let device = cpal::default_host()
         .default_input_device()
         .context("no default input device")?;
@@ -27,34 +48,16 @@ fn open_inner() -> Result<Box<dyn Iterator<Item = AudioSamples>>> {
         return Err(anyhow!("unsupported sample format {sample_format:?}"));
     }
 
-    let (tx, rx) = mpsc::channel::<Vec<f32>>();
     let stream = device.build_input_stream(
         config,
         move |data: &[f32], _: &_| {
-            let _ = tx.send(data.to_vec());
+            let mono = downmix_to_mono(data, channels);
+            let resampled = resample_linear(&mono, src_rate, AudioSamples::SAMPLE_RATE);
+            let _ = audio_tx.send(AudioSamples::new(resampled));
         },
         |e| eprintln!("audio stream error: {e}"),
         None,
     )?;
     stream.play()?;
-
-    Ok(Box::new(MicStream { _stream: stream, rx, channels, src_rate }))
-}
-
-struct MicStream {
-    _stream: Stream,
-    rx: Receiver<Vec<f32>>,
-    channels: usize,
-    src_rate: u32,
-}
-
-impl Iterator for MicStream {
-    type Item = AudioSamples;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let block = self.rx.recv().ok()?;
-        let mono = downmix_to_mono(&block, self.channels);
-        let resampled = resample_linear(&mono, self.src_rate, AudioSamples::SAMPLE_RATE);
-        Some(AudioSamples::new(resampled))
-    }
+    Ok(stream)
 }

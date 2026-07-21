@@ -11,13 +11,21 @@ impl WaveformWriter for WavWriter {
     }
 }
 
+pub fn wav_bytes(samples: &[f32], sample_rate: u32) -> Vec<u8> {
+    let mut out = Vec::with_capacity(44 + samples.len() * 2);
+    let _ = encode(samples, sample_rate, &mut out);
+    out
+}
+
 fn write_inner(waveform: &Waveform, path: &Path) -> Result<()> {
-    let samples = waveform.samples();
-    let sample_rate = waveform.sample_rate();
+    let mut out = std::fs::File::create(path)?;
+    encode(waveform.samples(), waveform.sample_rate(), &mut out)
+}
+
+fn encode(samples: &[f32], sample_rate: u32, out: &mut impl Write) -> Result<()> {
     let data_len = (samples.len() * 2) as u32;
     let byte_rate = sample_rate * 2;
 
-    let mut out = std::fs::File::create(path)?;
     out.write_all(b"RIFF")?;
     out.write_all(&(36 + data_len).to_le_bytes())?;
     out.write_all(b"WAVE")?;

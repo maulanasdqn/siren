@@ -1,10 +1,9 @@
 mod stream;
 
-use siren_domain::{DomainError, StreamingSynthesizer, Waveform};
+use siren_domain::{DomainError, SpeechSynthesizer, StreamingSynthesizer, Waveform};
+use siren_gemini::Credentials;
 use std::sync::mpsc;
 
-pub const DEFAULT_MODEL: &str = "gemini-3.1-flash-tts-preview";
-pub const DEFAULT_VOICE: &str = "Charon";
 pub const SAMPLE_RATE: u32 = 24_000;
 
 pub struct GeminiSynthesizer {
@@ -15,8 +14,7 @@ pub struct GeminiSynthesizer {
 
 impl GeminiSynthesizer {
     pub fn load(model: String, voice: String) -> Result<Self, DomainError> {
-        let api_key = std::env::var("GEMINI_API_KEY")
-            .map_err(|_| DomainError::model("GEMINI_API_KEY environment variable not set"))?;
+        let api_key = Credentials::from_env()?.into_key();
         Ok(Self { api_key, model, voice })
     }
 }
@@ -40,5 +38,18 @@ impl StreamingSynthesizer for GeminiSynthesizer {
             }
         });
         Ok(Box::new(rx.into_iter()))
+    }
+}
+
+impl SpeechSynthesizer for GeminiSynthesizer {
+    fn synthesize(&mut self, text: &str) -> Result<Waveform, DomainError> {
+        let mut samples = Vec::new();
+        for chunk in self.stream(text)? {
+            samples.extend_from_slice(chunk.samples());
+        }
+        if samples.is_empty() {
+            return Err(DomainError::inference("gemini returned no audio"));
+        }
+        Ok(Waveform::new(samples, SAMPLE_RATE))
     }
 }

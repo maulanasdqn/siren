@@ -5,8 +5,6 @@ use futures_util::StreamExt;
 use siren_domain::Waveform;
 use std::sync::mpsc::Sender;
 
-const ENDPOINT: &str = "https://generativelanguage.googleapis.com/v1beta/models";
-
 pub struct Request {
     pub api_key: String,
     pub model: String,
@@ -15,7 +13,10 @@ pub struct Request {
 }
 
 pub async fn run(request: Request, tx: &Sender<Waveform>) -> Result<()> {
-    let url = format!("{ENDPOINT}/{}:streamGenerateContent?alt=sse", request.model);
+    let url = format!(
+        "{}?alt=sse",
+        siren_gemini::rest_url(&request.model, "streamGenerateContent")
+    );
     let body = serde_json::json!({
         "contents": [{ "parts": [{ "text": request.text }] }],
         "generationConfig": {
